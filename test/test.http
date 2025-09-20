@@ -1,0 +1,15 @@
+
+get http://127.0.0.1:3000 HTTP/1.1
+
+###
+get http://127.0.0.1:3000/user/ok HTTP/1.1
+content-type: application/json
+
+
+post http://127.0.0.1:3000 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample",
+    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+}
