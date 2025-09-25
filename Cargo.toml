@@ -11,4 +11,5 @@ serde = { version = "1.0", features = ["derive"] }
 argon2 = { version = "0.5", features = ["std"] }
 diesel = { version = "2.3", features = ["postgres", "r2d2", "chrono"] }
 chrono = { version = "0.4", features = ["serde", "std", "now"] }
+validator = { version = "0.19", features = ["derive"] }
 # sqlx = { version = "0.8", features = [ "postgres", "runtime-tokio", "macros", "chrono" ] }

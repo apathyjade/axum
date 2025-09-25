@@ -1,17 +1,51 @@
 
 use axum::{
-    extract::{ State },
-    routing::get, Json, Router
+    extract::{ State, Query },
+    routing::{get, post},
+    Json, Router
 };
-use diesel::{ RunQueryDsl};
+use diesel::{
+    query_dsl::methods::FilterDsl,
+    query_dsl::methods::SelectDsl,
+    ExpressionMethods,
+    RunQueryDsl,
+};
 use chrono::{ Utc };
+use serde::Deserialize;
 
-use crate::{model::user::NewUser, utils, schema, AppStateArc};
+use crate::{model::user::{NewUser, ViewUser}, schema, utils, AppStateArc};
 use crate::model::api_response::ApiResponse;
 
+#[derive(Deserialize)]
+struct Params {
+    id: Option<i64>,
+}
 
+async fn get_user<'a>(
+    State(app_state): State<AppStateArc>,
+    Query(params): Query<Params>
+) -> Json<ApiResponse<ViewUser>> {
+    if params.id.is_none() {
+        return Json(ApiResponse::error("请传入用户id"));
+    }
+    let id = params.id.unwrap();
+    let pool = app_state.db_pool.clone();
+    let conn = &mut *pool.get().unwrap();
+    // 执行数据库操作
+    let result = tokio::task::block_in_place(|| {
+        let table = schema::user::table;
+        table.filter(schema::user::id.eq(id))
+            .select(schema::user::all_columns)
+            .get_result(conn)
+    });
+    if let Ok(view_user) = result {
+        return Json(ApiResponse::success(view_user));
+    } else {
+        return Json(ApiResponse::error("服务异常，请稍后再试~~~"));
+    }
+}
 
-async fn get_user<'a>(State(app_state)
+async fn create_user<'a>(State(app_state)
 : State<AppStateArc>)
 -> Json<ApiResponse<NewUser<'a>>> {
     let password = utils::password::hash_password("wxy0809").expect("msg");
@@ -26,9 +60,9 @@ async fn get_user<'a>(State(app_state)
         updated_time: Utc::now().naive_utc(),
     };
     let pool = app_state.db_pool.clone();
+    let conn = &mut *pool.get().unwrap();
     // 执行数据库操作
     let result = tokio::task::block_in_place(|| {
-        let conn = &mut *pool.get().unwrap();
         diesel::insert_into(schema::user::table)
             .values(&new_user)
             .execute(conn)
@@ -39,13 +73,6 @@ async fn get_user<'a>(State(app_state)
         return Json(ApiResponse::error("服务异常，请稍后再试~~~"));
     }
 }
-// #[derive(Deserialize)]
-// struct Params {
-//     id: i64,
-// }
-// async fn create_user<'a>(Query(params): Query<Params>) -> Json<User<'a>> {
-//   return Json(User { name: "Hello World" });
-// }
 // async fn update_user<'a>() -> Json<User<'a>> {
 //   return Json(User { name: "Hello World" });
 // }
@@ -61,7 +88,7 @@ pub fn router<'a>() -> Router<AppStateArc> {
 
     Router::new()
         .route("/get", get(get_user))       // GET /users/:id
-        // .route("/post", post(create_user))      // POST /users
+        .route("/post", post(create_user))
         // .route("/put", put(update_user))    // PUT /users/:id
         // .layer(user_middleware)             // 应用模块专属中间件
 }
