@@ -1,36 +1,49 @@
 
 use axum::{
-    extract::{Query, State},
+    extract::{ State },
     routing::get, Json, Router
 };
-use serde::Deserialize;
+use diesel::{ RunQueryDsl};
+use chrono::{ Utc };
 
-use crate::AppStateArc;
+use crate::{model::user::NewUser, utils, schema, AppStateArc};
 use crate::model::api_response::ApiResponse;
-use crate::model::user::NewUser;
 
-#[derive(Deserialize)]
-struct Params {
-    id: i32,
-}
 
-async fn get_user<'a>(State(app_state): State<AppStateArc>, Query(params): Query<Params>) -> Json<ApiResponse<NewUser>> {
-  let res = sqlx::query_as!(
-      NewUser,
-      r#"select name, email from "user" where id = $1"#,
-      params.id
-    )
-    .fetch_one(&app_state.pool).await;
-  match res {
-      Ok(row) => {
-          return Json(ApiResponse::success(row));
-      },
-      Err(_) => {
-          return Json(ApiResponse::error("查询用户信息失败"));
-      }
-  }
+
+async fn get_user<'a>(State(app_state)
+: State<AppStateArc>)
+-> Json<ApiResponse<NewUser<'a>>> {
+    let password = utils::password::hash_password("wxy0809").expect("msg");
+    let new_user: NewUser<'a> = NewUser {
+        username: "test",
+        password,
+        email: "apathyjade@outlook.com",
+        phone: "18632798101",
+        real_name: "测试",
+        status: 0,
+        created_time: Utc::now().naive_utc(),
+        updated_time: Utc::now().naive_utc(),
+    };
+    let pool = app_state.db_pool.clone();
+    // 执行数据库操作
+    let result = tokio::task::block_in_place(|| {
+        let conn = &mut *pool.get().unwrap();
+        diesel::insert_into(schema::user::table)
+            .values(&new_user)
+            .execute(conn)
+    });
+    if let Ok(_) = result {
+        return Json(ApiResponse::success(new_user));
+    } else {
+        return Json(ApiResponse::error("服务异常，请稍后再试~~~"));
+    }
 }
-// async fn create_user<'a>() -> Json<User<'a>> {
+// #[derive(Deserialize)]
+// struct Params {
+//     id: i64,
+// }
+// async fn create_user<'a>(Query(params): Query<Params>) -> Json<User<'a>> {
 //   return Json(User { name: "Hello World" });
 // }
 // async fn update_user<'a>() -> Json<User<'a>> {

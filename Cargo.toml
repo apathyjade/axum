@@ -4,19 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-dotenv = "0.15.0"
-axum = "0.8.4"
-sqlx = { version = "0.8", features = [ "postgres", "runtime-tokio", "macros", "chrono" ] }
-tokio = { version = "1.47.1", features = ["full"] }
-chrono = { version = "0.4.42", features = ["serde"] }
-serde = { version = "1.0.226", features = ["derive"] }
-# diesel = { version = "2.3.2", features = ["postgres", "r2d2", "chrono"] }
-# diesel-async = { version = "0.6.1", features = ["postgres"] }
-# pq-sys = { version = "0.7.2", features = ["bundled"] }
-# openssl-sys = { version = "0.9.109", features = ["vendored"] }
-# 添加以下依赖
-# diesel_migrations = "2.3.0"
-# r2d2 = "0.8.10"
-
-# [target.'cfg(windows)'.build-dependencies]
-# winapi = { version = "0.3", features = ["winbase", "winnt", "processenv"] }
+dotenv = "0.15"
+axum = "0.8"
+tokio = { version = "1.47", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+argon2 = { version = "0.5", features = ["std"] }
+diesel = { version = "2.3", features = ["postgres", "r2d2", "chrono"] }
+chrono = { version = "0.4", features = ["serde", "std", "now"] }
+# sqlx = { version = "0.8", features = [ "postgres", "runtime-tokio", "macros", "chrono" ] }
