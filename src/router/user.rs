@@ -12,12 +12,14 @@ use diesel::{
 };
 use chrono::{ Utc };
 use serde::Deserialize;
+use validator::Validate;
 
 use crate::{model::user::{NewUser, ViewUser}, schema, utils, AppStateArc};
 use crate::model::api_response::ApiResponse;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 struct Params {
+    #[validate(required(message = "ID不能为空"))]
     id: Option<i64>,
 }
 
@@ -25,8 +27,9 @@ async fn get_user<'a>(
     State(app_state): State<AppStateArc>,
     Query(params): Query<Params>
 ) -> Json<ApiResponse<ViewUser>> {
-    if params.id.is_none() {
-        return Json(ApiResponse::error("请传入用户id"));
+    if let Err(err) = params.validate() {
+        let msg = utils::validator::get_validator_first_error_message(&err);
+        return Json(ApiResponse::error(&msg));
     }
     let id = params.id.unwrap();
     let pool = app_state.db_pool.clone();

@@ -2,6 +2,7 @@ mod router;
 mod utils;
 mod model;
 mod schema;
+mod middleware;
 use dotenv::dotenv;
 use std::env;
 use std::sync::{Arc};

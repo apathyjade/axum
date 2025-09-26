@@ -7,9 +7,9 @@ edition = "2024"
 dotenv = "0.15"
 axum = "0.8"
 tokio = { version = "1.47", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0.227", features = ["derive"] }
 argon2 = { version = "0.5", features = ["std"] }
 diesel = { version = "2.3", features = ["postgres", "r2d2", "chrono"] }
 chrono = { version = "0.4", features = ["serde", "std", "now"] }
-validator = { version = "0.19", features = ["derive"] }
+validator = { version = "0.20.0", features = ["derive"] }
 # sqlx = { version = "0.8", features = [ "postgres", "runtime-tokio", "macros", "chrono" ] }

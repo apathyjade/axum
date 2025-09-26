@@ -2,10 +2,7 @@
 use serde::{ Deserialize, Serialize};
 use chrono::{ NaiveDateTime };
 use diesel::{
-    prelude::*,
-    Queryable,
-    QueryableByName,
-    AsChangeset,
+    prelude::*
 };
 use crate::schema;
 
