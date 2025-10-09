@@ -44,7 +44,8 @@ async fn get_user<'a>(
     if let Ok(view_user) = result {
         return Json(ApiResponse::success(view_user));
     } else {
-        return Json(ApiResponse::error("服务异常，请稍后再试~~~"));
+        return Json(ApiResponse::error(result.err().unwrap().to_string().as_str()));
+        // return Json(ApiResponse::error("服务异常，请稍后再试~~~"));
     }
 }
 

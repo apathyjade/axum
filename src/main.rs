@@ -15,7 +15,7 @@ pub struct AppState {
 }
 pub type AppStateArc = Arc<AppState>;
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 1)]
 async fn main() {
     dotenv().ok();
     let host = env::var("HOST")
