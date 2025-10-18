@@ -16,7 +16,15 @@ use tokio::time::interval;
 
 use oauth2::{
     basic::BasicClient,
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl
+    AuthUrl,
+    AuthorizationCode,
+    ClientId,
+    ClientSecret,
+    CsrfToken,
+    RedirectUrl,
+    Scope,
+    TokenResponse,
+    TokenUrl
 };
 
 use reqwest;
@@ -55,11 +63,15 @@ pub async fn auth_callback(
     Query(params): Query<AuthCallbackParams>,
 ) -> Json<ApiResponse<String>> {
     let req_client = reqwest::Client::new();
-    let result = req_client.post("https://github.com/login/oauth/access_token")
+    let uri = utils::env::get_env(utils::env::Env::GithubAuthUri);
+    let client_id = utils::env::get_env(utils::env::Env::GithubClientId);
+    let client_secret = utils::env::get_env(utils::env::Env::GithubClientSecret);
+
+    let result = req_client.post(uri)
         .header("Accept", "application/json")
         .json(&HashMap::from([
-            ("client_id", env::var("GITHUB_CLIENT_ID").unwrap()),
-            ("client_secret", env::var("GITHUB_CLIENT_SECRET").unwrap()),
+            ("client_id", client_id),
+            ("client_secret", client_secret),
             ("code", params.code),
         ]))
         .send()
@@ -67,7 +79,7 @@ pub async fn auth_callback(
     match result {
         Ok(data) => {
             let val = data.text().await.unwrap();
-            Json(ApiResponse::success(format!("{:?}", val)))
+            Json(ApiResponse::success(val))
         },
         Err(err) => {
             return Json(ApiResponse::error(err.to_string().as_str()));
@@ -121,16 +133,32 @@ pub async fn auth_callback(
 // }
 
 async fn auth_github() -> impl IntoResponse {
-    let oauth_client = BasicClient::new(ClientId::new(env::var("GITHUB_CLIENT_ID").unwrap()))
-    .set_client_secret(ClientSecret::new(env::var("GITHUB_CLIENT_SECRET").unwrap()))
-    .set_auth_uri(AuthUrl::new("https://github.com/login/oauth/authorize".to_string()).unwrap())
-    .set_token_uri(TokenUrl::new("https://github.com/login/oauth/access_token".to_string()).unwrap())
-    .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string()).unwrap());
-    let (auth_url, _csrf_token) = oauth_client
+    let client_id: ClientId = ClientId::new(
+        utils::env::get_env(utils::env::Env::GithubClientId)
+    );
+    let client_secret: ClientSecret = ClientSecret::new(
+        utils::env::get_env(utils::env::Env::GithubClientSecret)
+    );
+    let auth_url = AuthUrl::new(
+        utils::env::get_env(utils::env::Env::GithubAuthUri)
+    ).unwrap();
+    let token_url = TokenUrl::new(
+        utils::env::get_env(utils::env::Env::GithubTokenUri)
+    ).unwrap();
+    let redirect_url = RedirectUrl::new(
+        utils::env::get_env(utils::env::Env::AuthCallback)
+    ).unwrap();
+
+    let oauth_client = BasicClient::new(client_id)
+    .set_client_secret(client_secret)
+    .set_auth_uri(auth_url)
+    .set_token_uri(token_url)
+    .set_redirect_uri(redirect_url);
+    let (_auth_url, _csrf_token) = oauth_client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("user:email".to_string()))
         .url();
-    Redirect::to(auth_url.as_str())
+    Redirect::to(_auth_url.as_str())
 }
 
 pub fn router<'a>() -> Router<AppStateArc> {

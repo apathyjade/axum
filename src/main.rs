@@ -4,7 +4,6 @@ mod model;
 mod schema;
 mod middleware;
 use dotenv::dotenv;
-use std::env;
 use std::sync::{Arc};
 
 pub use utils::db;
@@ -18,10 +17,8 @@ pub type AppStateArc = Arc<AppState>;
 #[tokio::main(flavor = "multi_thread", worker_threads = 1)]
 async fn main() {
     dotenv().ok();
-    let host = env::var("HOST")
-        .expect("HOST 必须在.env文件或环境变量中设置");
-    let port = env::var("PORT")
-        .expect("PORT 必须在.env文件或环境变量中设置");
+    let host = utils::env::get_env(utils::env::Env::Host);
+    let port = utils::env::get_env(utils::env::Env::Port);
 
     let db_pool = db::init_diesel_db().await;
     let app_state = AppState { db_pool };
