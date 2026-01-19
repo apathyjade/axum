@@ -1,11 +1,12 @@
-use axum::{
-    routing::get,
-    Router,
-    http::StatusCode,
-    response::IntoResponse,
-};
+use axum::{Router, http::StatusCode, response::IntoResponse, routing::get};
 
-use crate::AppStateArc;
+use tower_http::services::{ServeDir, ServeFile};
+
+use crate::{AppStateArc};
+
+use utoipa_swagger_ui::SwaggerUi;
+
+include!("../api_doc.rs");
 
 // 健康检查
 async fn health_check() -> &'static str {
@@ -18,7 +19,14 @@ async fn not_found() -> impl IntoResponse {
 }
 
 pub fn router() -> Router<AppStateArc> {
+    let serve_dir = ServeDir::new("web/apps/shell/dist")
+        .append_index_html_on_directories(true) // 访问目录时自动加 /index.html
+        .fallback(ServeFile::new("web/apps/shell/dist/index.html"));
+    let spe = ApiDoc::openapi();
     Router::new()
         .route("/health", get(health_check))
+        .merge(SwaggerUi::new("/swagger-ui")
+               .url("/api-docs/openapi.json", spe))
+        .nest_service("/web", serve_dir)
         .fallback(not_found)
 }

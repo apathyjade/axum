@@ -1,7 +1,6 @@
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordVerifier, SaltString},
-    Argon2,
-    PasswordHasher,
+    Argon2, PasswordHasher,
+    password_hash::{PasswordHash, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 use std::error::Error;
 
@@ -15,15 +14,13 @@ use std::error::Error;
 
 /// 使用 Argon2 对密码进行哈希处理。
 /// 这个函数将返回一个完整的、包含盐值的哈希字符串。
-pub fn hash_password<'a>(password: &'a str) -> Result<String, Box<dyn Error>> {
+pub fn hash_password(password: &str) -> Result<String, Box<dyn Error>> {
     // 1. 生成安全的随机盐值
     let salt = SaltString::generate(&mut OsRng);
     let bytes_pw = password.as_bytes();
     let argon2 = Argon2::default();
-    
-    let password_hash = argon2
-        .hash_password(bytes_pw, &salt)?
-        .to_string(); // 将哈希转换为标准字符串格式
+
+    let password_hash = argon2.hash_password(bytes_pw, &salt)?.to_string(); // 将哈希转换为标准字符串格式
     Ok(password_hash)
 }
 /// 使用 Argon2 验证密码。
@@ -34,8 +31,8 @@ pub fn verify_password(
 ) -> Result<(), Box<dyn Error>> {
     let argon2 = Argon2::default();
     // 从字符串解析出 PasswordHash 对象
-    let parsed_hash = PasswordHash::new(password_hash_str)
-        .map_err(|e| format!("无效的密码哈希格式: {}", e))?;
+    let parsed_hash =
+        PasswordHash::new(password_hash_str).map_err(|e| format!("无效的密码哈希格式: {}", e))?;
     // 使用 Argon2 的 verify 方法进行验证
     argon2.verify_password(password, &parsed_hash)?;
     Ok(())

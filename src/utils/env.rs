@@ -1,4 +1,3 @@
-
 static HOST: &str = "HOST";
 static PORT: &str = "PORT";
 static DATABASE_URL: &str = "DATABASE_URL";
@@ -35,5 +34,6 @@ impl Env {
 }
 
 pub fn get_env(env: Env) -> String {
-    dotenv::var(env.as_str()).expect(format!("{} 必须在.env文件或环境变量中设置", env.as_str()).as_str())
+    dotenv::var(env.as_str())
+        .unwrap_or_else(|_| panic!("{} 必须在.env文件或环境变量中设置", env.as_str()))
 }

@@ -1,20 +1,18 @@
-mod router;
-mod utils;
-mod model;
-mod schema;
+mod macros;
 mod middleware;
+mod model;
+mod router;
+mod schema;
+mod service;
+mod utils;
+
 use dotenv::dotenv;
-use std::sync::{Arc};
+use std::sync::Arc;
+use utils::db;
 
-pub use utils::db;
+use model::app_state::{AppState, AppStateArc};
 
-#[derive(Debug, Clone)]
-pub struct AppState {
-    pub db_pool: db::DbPool,
-}
-pub type AppStateArc = Arc<AppState>;
-
-#[tokio::main(flavor = "multi_thread", worker_threads = 1)]
+#[tokio::main(flavor = "multi_thread", worker_threads = 4)]
 async fn main() {
     dotenv().ok();
     let host = utils::env::get_env(utils::env::Env::Host);
@@ -24,14 +22,16 @@ async fn main() {
     let app_state = AppState { db_pool };
     let app_state_arc = Arc::new(app_state);
 
-    
     // build our application with a single route
     let routers = router::all_routes().with_state(app_state_arc);
+
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port))
         .await
         .unwrap();
+
+    println!("Server running on http://{}:{}", host, port);
+
     axum::serve(listener, routers.into_make_service())
         .await
         .unwrap();
-    println!("listening on http://{}:{}", host, port);
 }
