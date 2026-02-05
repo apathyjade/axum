@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use serde_repr::{Serialize_repr, Deserialize_repr};
 use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
 #[repr(i32)]
 pub enum ResCodeEnum {
     Success = 0,
@@ -13,6 +14,16 @@ pub enum ResCodeEnum {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ApiResponse<T> {
+    /// 响应码：<br>
+    /// 0 = 成功<br>
+    /// 1 = 业务错误<br>
+    /// 2 = 服务异常<br>
+    /// 3 = 未登录<br>
+    /// 4 = 无权限
+    #[schema(
+        value_type = i32,
+        example = 0,
+    )]
     pub code: ResCodeEnum,
     pub data: Option<T>,
     pub msg: Option<String>,
@@ -44,5 +55,27 @@ impl<T> ApiResponse<T> {
             data: None,
             msg: Some(msg.to_string()),
         }
+    }
+}
+
+
+#[derive(Debug)]
+pub enum AppErr {
+    DatabaseError(String),
+    DataExists(String),
+}
+
+impl AppErr {
+    pub fn message(&self) -> String {
+        match self {
+            AppErr::DatabaseError(msg) => msg.to_string(),
+            AppErr::DataExists(msg) => msg.to_string(),
+        }
+    }
+}
+
+impl From<diesel::result::Error> for AppErr {
+    fn from(_: diesel::result::Error) -> Self {
+        AppErr::DatabaseError("数据存储异常！".to_string())
     }
 }

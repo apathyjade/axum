@@ -1,6 +1,9 @@
-use axum::{Router, http::StatusCode, response::IntoResponse, routing::get};
+use axum::{Router, http::{HeaderValue, StatusCode, header}, response::IntoResponse, routing::get};
 
-use tower_http::services::{ServeDir, ServeFile};
+use hyper::{Request, Response};
+use tower_http::{
+    ServiceExt, services::{ServeDir, ServeFile}
+};
 
 use crate::{AppStateArc};
 
@@ -23,10 +26,19 @@ pub fn router() -> Router<AppStateArc> {
         .append_index_html_on_directories(true) // 访问目录时自动加 /index.html
         .fallback(ServeFile::new("web/apps/shell/dist/index.html"));
     let spe = ApiDoc::openapi();
+
+    let tiles_dir = ServeDir::new("public/tiles")
+        .append_index_html_on_directories(false)
+        .precompressed_gzip()
+        .append_response_header(header::CONTENT_TYPE, HeaderValue::from_static("application/x-protobuf"))
+        .append_response_header(header::CONTENT_ENCODING, HeaderValue::from_static("gzip"));
+
     Router::new()
+        .nest_service("/web", serve_dir)
+        .nest_service("/tiles", tiles_dir)
+        // .nest_service("/forward", get(forward_request))
         .route("/health", get(health_check))
         .merge(SwaggerUi::new("/swagger-ui")
                .url("/api-docs/openapi.json", spe))
-        .nest_service("/web", serve_dir)
         .fallback(not_found)
 }

@@ -1,0 +1,20 @@
+POST http://localhost:3000/api/tenant/create HTTP/1.1
+content-type: application/json
+
+{
+  "address_detail": "西二旗",
+  "business_license_url": "https://www.china.com/xxxx.png",
+  "city": "北京市",
+  "company_name": "中华科技有限公司",
+  "contact_email": "1234567890@email.com",
+  "contact_name": "张三",
+  "contact_phone": "13800138000",
+  "district": "东城区",
+  "industry": "IT",
+  "province": "北京市",
+  "short_name": "中科",
+  "unified_social_credit_code": "91310000786784005J",
+  "website": "https://www.china.com"
+}
+
+GET http://localhost:3000/tiles/output/9/420/194.pbf HTTP/1.1

@@ -10,6 +10,9 @@ use dotenv::dotenv;
 use std::sync::Arc;
 use utils::db;
 
+use model::api_res::{ ApiRes };
+use model::api_response::{ AppErr };
+
 use model::app_state::{AppState, AppStateArc};
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 4)]
@@ -19,8 +22,10 @@ async fn main() {
     let port = utils::env::get_env(utils::env::Env::Port);
 
     let db_pool = db::init_diesel_db().await;
-    let app_state = AppState { db_pool };
+    let gis_db_pool = db::init_gis_db().await;
+    let app_state = AppState { db_pool, gis_db_pool };
     let app_state_arc = Arc::new(app_state);
+
 
     // build our application with a single route
     let routers = router::all_routes().with_state(app_state_arc);

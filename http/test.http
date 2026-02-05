@@ -1,0 +1,2 @@
+# GET http://localhost:3000/tiles/output/10/840/389.pbf HTTP/1.1
+GET http://localhost:3000/tiles/10/840/389.pbf HTTP/1.1

@@ -1,6 +1,8 @@
 static HOST: &str = "HOST";
 static PORT: &str = "PORT";
 static DATABASE_URL: &str = "DATABASE_URL";
+static GIS_DATABASE_URL: &str = "GIS_DATABASE_URL";
+
 static GITHUB_CLIENT_ID: &str = "GITHUB_CLIENT_ID";
 static GITHUB_CLIENT_SECRET: &str = "GITHUB_CLIENT_SECRET";
 static GITHUB_AUTH_URI: &str = "GITHUB_AUTH_URI";
@@ -11,6 +13,7 @@ pub enum Env {
     Host,
     Port,
     DatabaseUri,
+    GisDatabaseUri,
     GithubClientId,
     GithubClientSecret,
     GithubAuthUri,
@@ -24,6 +27,7 @@ impl Env {
             Env::Host => HOST,
             Env::Port => PORT,
             Env::DatabaseUri => DATABASE_URL,
+            Env::GisDatabaseUri => GIS_DATABASE_URL,
             Env::GithubClientId => GITHUB_CLIENT_ID,
             Env::GithubClientSecret => GITHUB_CLIENT_SECRET,
             Env::GithubAuthUri => GITHUB_AUTH_URI,

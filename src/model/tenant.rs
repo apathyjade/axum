@@ -3,6 +3,8 @@ use diesel::{pg::Pg, prelude::*};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
+use validator::Validate;
+use std::error::Error;
 
 use crate::{model::pager::Pager, schema};
 
@@ -72,20 +74,34 @@ pub struct Tenant {
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, Validate, ToSchema)]
 pub struct NewTenant {
+    #[schema(example = "中华科技有限公司")]
     pub company_name: String,
+    #[schema(example = "中科")]
     pub short_name: Option<String>,
+    #[schema(example = "91310000786784005J")]
     pub unified_social_credit_code: Option<String>,
+    #[schema(example = "IT")]
     pub industry: Option<String>,
+    #[schema(example = "https://www.china.com")]
     pub website: Option<String>,
+    #[schema(example = "张三")]
     pub contact_name: String,
+    #[schema(example = "1234567890@email.com")]
+    #[validate(email)]
     pub contact_email: String,
+    #[schema(example = "13800138000")]
     pub contact_phone: String,
+    #[schema(example = "北京市")]
     pub province: Option<String>,
+    #[schema(example = "北京市")]
     pub city: Option<String>,
+    #[schema(example = "东城区")]
     pub district: Option<String>,
+    #[schema(example = "西二旗")]
     pub address_detail: Option<String>,
+    #[schema(example = "https://www.china.com/xxxx.png")]
     pub business_license_url: Option<String>,
 }
 
